@@ -1,67 +1,67 @@
-# 部署指南
+# Deployment guide
 
-项目仓库：[JenkinWoo/sheeridVerify](https://github.com/JenkinWoo/sheeridVerify)。
+Project repository: [JenkinWoo/sheeridVerify](https://github.com/JenkinWoo/sheeridVerify).
 
-本指南面向获得授权的学校教学、学术研究和流程测试。使用前阅读 [免责声明](../DISCLAIMER.md)；使用真实资料前确认授权和数据处理方式。
+This guide is aimed at authorized school teaching, academic research, and workflow testing. Read the [Disclaimer](../DISCLAIMER.md) before use; confirm authorization and data-handling practices before using real data.
 
-## 文件与运行要求
+## Files and runtime requirements
 
-| 文件 | 作用 |
+| File | Purpose |
 | --- | --- |
-| `config/sheerid.example.json` | 应用配置模板，复制为 `config/sheerid.local.json` 后编辑 |
-| `deploy/.env.web.example` | Web 监听地址、HTTPS 入口与密码模板 |
-| `deploy/one-web.service` | systemd 用户服务，默认安装路径 `/data/workspace/one` |
-| `deploy/nginx.conf.example` | 自管 Linux 服务器的 HTTPS 反向代理示例 |
+| `config/sheerid.example.json` | Application configuration template; copy it to `config/sheerid.local.json` and edit |
+| `deploy/.env.web.example` | Template for the web listen address, HTTPS entry point, and password |
+| `deploy/one-web.service` | systemd user service, default install path `/data/workspace/one` |
+| `deploy/nginx.conf.example` | Example HTTPS reverse proxy for a self-managed Linux server |
 
-需要 Node.js >= 22.15、npm、适用于当前系统的 Camoufox，以及浏览器所需的系统库。有界面模式还需要可用的桌面会话。systemd 配置用于支持用户服务的 Linux 环境；Windows 本地运行不使用它。
+Requires Node.js >= 22.15, npm, the Camoufox build for the current system, and the system libraries the browser needs. Headed mode also requires an available desktop session. The systemd configuration is for a Linux environment that supports user services; it is not used for local runs on Windows.
 
-下面假定 Linux 程序位于 `/data/workspace/one`。如果安装到其他目录，需要同时修改服务的 `WorkingDirectory`、`EnvironmentFile` 和 `ExecStart`。配置文件相对于工作目录解析。
+The following assumes the Linux program is located at `/data/workspace/one`. If you install it in another directory, you must also change the service's `WorkingDirectory`, `EnvironmentFile`, and `ExecStart`. Configuration files are resolved relative to the working directory.
 
-`one` 是现有部署目录名，`one-web` 是服务名，`ONE_WEB_*` 是当前环境变量前缀，与 GitHub 项目名称无关；更新项目名称无需迁移已有部署。首次部署可用 `git clone https://github.com/JenkinWoo/sheeridVerify.git /data/workspace/one` 将仓库克隆到本指南约定的位置。
+`one` is the name of the existing deployment directory, `one-web` is the service name, and `ONE_WEB_*` is the current environment-variable prefix — these are unrelated to the GitHub project name; updating the project name does not require migrating an existing deployment. For a first deployment, you can use `git clone https://github.com/JenkinWoo/sheeridVerify.git /data/workspace/one` to clone the repository to the location assumed in this guide.
 
-## 本地准备
+## Local preparation
 
-在仓库根目录安装依赖与浏览器：
+Install the dependencies and the browser in the repository root:
 
 ```bash
 npm ci
 npm run browser:install
 ```
 
-Windows PowerShell 复制配置：
+Copy the configuration in Windows PowerShell:
 
 ```powershell
 Copy-Item config/sheerid.example.json config/sheerid.local.json
 ```
 
-Linux 复制配置并限制权限：
+Copy the configuration on Linux and restrict permissions:
 
 ```bash
 cp -n config/sheerid.example.json config/sheerid.local.json
 chmod 600 config/sheerid.local.json
 ```
 
-已有个人配置时直接编辑原文件，不要覆盖。至少确认 `data.country`、`data.organization.name`、`data.organization.optionText` 和 `data.organization.emailDomain`。邮箱后缀用于生成本次表单邮箱，不代表邮箱或学校身份已获认证。材料使用真实且已获授权的文件，`document.path` 与 `document.url` 只能设置其中一个。
+When you already have a personal configuration, edit the original file directly rather than overwriting it. At minimum, confirm `data.country`, `data.organization.name`, `data.organization.optionText`, and `data.organization.emailDomain`. The email suffix is used to generate the form email for this run; it does not mean the mailbox or school identity has been certified. Use real, authorized files for materials, and set only one of `document.path` and `document.url`.
 
-配置必须是标准 JSON，不支持 `//` 注释、单引号或尾随逗号。快速检查 JSON 语法：
+The configuration must be standard JSON and does not support `//` comments, single quotes, or trailing commas. Quick check of the JSON syntax:
 
 ```bash
-node --input-type=module -e 'import {readFile} from "node:fs/promises"; JSON.parse((await readFile("config/sheerid.local.json", "utf8")).replace(/^\uFEFF/, "")); console.log("JSON OK");'
+node --input-type=module -e 'import {readFile} from "node:fs/promises"; JSON.parse((await readFile("config/sheerid.local.json", "utf8")).replace(/^﻿/, "")); console.log("JSON OK");'
 ```
 
-以上语法检查命令适用于 Bash；Windows 可直接运行 `npm run web` 查看配置加载错误。通过语法检查不等于所有业务字段均有效，新任务入队时还会校验配置。
+The syntax-check command above is for Bash; on Windows you can just run `npm run web` to see configuration-loading errors. Passing the syntax check does not mean all business fields are valid — the configuration is also validated when a new task is enqueued.
 
-启动本地服务：
+Start the local service:
 
 ```bash
 npm run web
 ```
 
-打开 `http://127.0.0.1:8787`。开发时默认访问密码为 `JenkinWoo`；公网部署必须设置自己的密码。按 Ctrl+C 停止。端口占用时可用 `npm run web -- --port 8788`；以下 systemd 和代理示例均使用默认端口 8787。
+Open `http://127.0.0.1:8787`. The default access password during development is `JenkinWoo`; a public deployment must set its own password. Press Ctrl+C to stop. If the port is in use, use `npm run web -- --port 8788`; the systemd and proxy examples below all use the default port 8787.
 
-## Instabox 部署
+## Instabox deployment
 
-将仓库代码上传或检出到 `/data/workspace/one`，然后执行：
+Upload or check out the repository code to `/data/workspace/one`, then run:
 
 ```bash
 cd /data/workspace/one
@@ -73,23 +73,23 @@ cp -n deploy/.env.web.example .env.web
 chmod 600 .env.web
 ```
 
-编辑应用配置与 `.env.web`，不要覆盖已有凭据。Instabox 公网端口入口使用：
+Edit the application configuration and `.env.web`; do not overwrite existing credentials. For the Instabox public port entry point, use:
 
 ```dotenv
 ONE_WEB_HOST=0.0.0.0
-ONE_WEB_PUBLIC_ORIGIN=https://你的8787端口HTTPS域名
-ONE_WEB_PASSWORD=替换为独立的随机密码
+ONE_WEB_PUBLIC_ORIGIN=https://your-8787-port-HTTPS-domain
+ONE_WEB_PASSWORD=replace-with-a-separate-random-password
 ```
 
-`ONE_WEB_PUBLIC_ORIGIN` 必须与实际访问的 HTTPS 域名一致，不含路径、查询参数或账号密码。使用 Instabox 分配的端口域名，不要填写 SSH 域名。可在终端执行以下命令生成密码，然后自行写入 `.env.web`：
+`ONE_WEB_PUBLIC_ORIGIN` must match the HTTPS domain actually used for access, without a path, query parameters, or credentials. Use the port domain assigned by Instabox; do not enter the SSH domain. You can run the following command in the terminal to generate a password, then write it into `.env.web` yourself:
 
 ```bash
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-模板中的密码占位符不会自动替换，程序也不会自动拒绝该占位符，启动前必须自行更换。有界面浏览器使用 `DISPLAY=:1`，确保 Instabox 的 Computer 桌面可用；所附服务文件已设置该变量。
+The password placeholder in the template is not replaced automatically, and the program does not automatically reject the placeholder, so you must change it yourself before startup. The headed browser uses `DISPLAY=:1`; make sure Instabox's Computer desktop is available; the included service file already sets this variable.
 
-安装用户服务前检查 Node.js 路径：
+Check the Node.js path before installing the user service:
 
 ```bash
 command -v node
@@ -97,7 +97,7 @@ node --version
 systemctl --user show-environment >/dev/null
 ```
 
-`deploy/one-web.service` 使用 `/usr/local/bin/node`。如果实际路径不同，请修改服务文件的 `ExecStart`。安装并启动：
+`deploy/one-web.service` uses `/usr/local/bin/node`. If the actual path differs, change the service file's `ExecStart`. Install and start:
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -107,33 +107,33 @@ systemctl --user enable --now one-web
 systemctl --user status one-web --no-pager
 ```
 
-用户服务能否在退出登录或机器重启后继续运行，取决于宿主的用户服务生命周期。在支持的自管主机上可由管理员按需执行 `sudo loginctl enable-linger "$USER"`；托管平台按平台规则处理。用户服务可启动并不代表桌面会话一定就绪。
+Whether a user service keeps running after logout or a machine reboot depends on the host's user-service lifecycle. On a supported self-managed host, an administrator can run `sudo loginctl enable-linger "$USER"` as needed; a managed platform handles this per its own rules. A user service being able to start does not mean the desktop session is necessarily ready.
 
-通过公网入口打开页面并输入设置的访问密码。首页可公开读取，API 需要密码或会话 Cookie。不要用“首页返回 200”代替登录及任务接口检查。
+Open the page through the public entry point and enter the access password you set. The home page can be read publicly, while the API requires a password or a session cookie. Do not treat "the home page returns 200" as a substitute for checking the login and task APIs.
 
-## 自管 Linux 与 Nginx
+## Self-managed Linux with Nginx
 
-按前面的步骤安装应用、配置和用户服务。使用同机 Nginx 时，在 `.env.web` 中保留 `ONE_WEB_HOST=127.0.0.1`，将 `ONE_WEB_PUBLIC_ORIGIN` 改为自己的 HTTPS 域名，并设置强密码。这样应用只监听本机，Nginx 提供公网入口。
+Install the application, configuration, and user service per the earlier steps. When using Nginx on the same machine, keep `ONE_WEB_HOST=127.0.0.1` in `.env.web`, change `ONE_WEB_PUBLIC_ORIGIN` to your own HTTPS domain, and set a strong password. This way the application listens only on localhost and Nginx provides the public entry point.
 
-1. 配置域名 DNS，使其指向服务器，并取得该域名的有效 TLS 证书。
-2. 将 [Nginx 模板](../deploy/nginx.conf.example) 放入服务器实际使用的 Nginx 配置目录。
-3. 替换 `server_name`、HTTP 跳转域名和证书路径；域名应与 `.env.web` 一致。
-4. 执行 `sudo nginx -t`，检查成功后执行 `sudo systemctl reload nginx`。
-5. 确认页面、登录、队列查询均正常，并限制不必要的网络访问。
+1. Configure the domain's DNS to point to the server and obtain a valid TLS certificate for the domain.
+2. Place the [Nginx template](../deploy/nginx.conf.example) into the Nginx configuration directory the server actually uses.
+3. Replace `server_name`, the HTTP-redirect domain, and the certificate paths; the domain should match `.env.web`.
+4. Run `sudo nginx -t`, and after the check succeeds, run `sudo systemctl reload nginx`.
+5. Confirm that the page, login, and queue queries all work, and restrict unnecessary network access.
 
-Nginx 通过 `Host` 转发域名，应用会验证 Host、Origin 和写请求令牌。不要通过删除应用来源检查来解决代理配置错误。Instabox 已提供 HTTPS 端口入口时，无需额外部署 Nginx。
+Nginx forwards the domain via `Host`, and the application verifies the Host, Origin, and write-request token. Do not resolve a proxy configuration error by removing the application's origin check. When Instabox already provides an HTTPS port entry point, there is no need to additionally deploy Nginx.
 
-有桌面的 Linux 使用真实的 `DISPLAY`，并相应修改服务配置。无桌面的服务器可在应用配置中设置 `"browser": { "headless": true, "keepOpen": false, "autoFill": true }`；需要用户交互的步骤仍需可操作的浏览器环境，不保证无界面模式能完成所有流程。
+Linux with a desktop uses a real `DISPLAY` and the service configuration is changed accordingly. A server without a desktop can set `"browser": { "headless": true, "keepOpen": false, "autoFill": true }` in the application configuration; steps that require user interaction still need an operable browser environment, and headless mode is not guaranteed to complete every flow.
 
-## 更新与重新启动
+## Updating and restarting
 
-先停止或等待当前任务完成。队列和历史只保存在内存中，停止或重启服务会终止任务并清空队列，不会自动恢复远端操作。
+First stop or wait for the current tasks to finish. The queue and history are kept only in memory; stopping or restarting the service terminates tasks and clears the queue, and does not automatically recover remote operations.
 
-1. 备份现有代码以及私有配置，将备份保存在受限目录中。
-2. 更新代码，保留 `config/sheerid.local.json`、`.env.web`、材料和运行记录；不要用示例配置覆盖它们。
-3. 依赖变化时运行 `npm ci`；浏览器依赖变化时重新执行 `npm run browser:install`。
-4. 若修改了服务文件，重新安装文件并执行 `systemctl --user daemon-reload`。
-5. 重启并查看状态、日志，随后验证公网登录和队列接口。
+1. Back up the existing code and the private configuration, and keep the backup in a restricted directory.
+2. Update the code, keeping `config/sheerid.local.json`, `.env.web`, materials, and run records; do not overwrite them with the example configuration.
+3. Run `npm ci` when dependencies change; re-run `npm run browser:install` when browser dependencies change.
+4. If you changed the service file, reinstall it and run `systemctl --user daemon-reload`.
+5. Restart and check the status and logs, then verify public login and the queue API.
 
 ```bash
 systemctl --user restart one-web
@@ -141,27 +141,27 @@ systemctl --user status one-web --no-pager
 journalctl --user -u one-web -n 50 --no-pager
 ```
 
-若更新后启动失败，恢复已备份的代码和对应依赖，再重新启动。旧代码可能不兼容新配置，回滚时也要核对配置字段。
+If startup fails after an update, restore the backed-up code and the corresponding dependencies, then restart. Old code may be incompatible with a new configuration, so check the configuration fields when rolling back as well.
 
-## 配置何时生效
+## When configuration takes effect
 
-| 修改内容 | 生效时机 |
+| Change | When it takes effect |
 | --- | --- |
-| `config/sheerid.local.json` 中的学校、邮箱后缀、浏览器及轮询配置 | 新任务入队时读取；已有任务保留原配置快照 |
-| `web.concurrency` | 服务启动或新任务入队时读取，调低不会中断已有任务 |
-| `.env.web` 中的密码、监听地址、HTTPS 域名 | 重启服务后生效 |
-| systemd 服务文件 | 重新安装、`daemon-reload` 并重启后生效 |
+| School, email suffix, browser, and polling settings in `config/sheerid.local.json` | Read when a new task is enqueued; existing tasks keep their original configuration snapshot |
+| `web.concurrency` | Read at service startup or when a new task is enqueued; lowering it does not interrupt existing tasks |
+| Password, listen address, and HTTPS domain in `.env.web` | Take effect after the service restarts |
+| systemd service file | Takes effect after reinstalling, `daemon-reload`, and a restart |
 
-“恢复任务”沿用该已停止任务原有配置；希望使用新配置时应删除已停止或失败的任务，再重新加入队列。服务重启后网页需重新验证访问密码。
+"Resume task" reuses the stopped task's original configuration; when you want to use a new configuration, delete the stopped or failed task and re-enqueue it. After a service restart, the web page must re-authenticate the access password.
 
-## 常见问题
+## Frequently asked questions
 
-- **修改配置无效**：确认编辑的是服务工作目录下的 `config/sheerid.local.json`，文件已保存，并且重新创建了任务。邮箱后缀优先读取 `data.organization.emailDomain`，其次为顶层 `emailDomain` 和 `data.emailDomain`；推荐仅在前者设置，避免多处配置冲突。
-- **Web 服务启动失败**：检查 JSON 是否包含注释或尾随逗号，以及 `web.concurrency` 是否为正整数；再检查配置权限、Node.js 路径和服务日志。
-- **端口被占用**：先查看是否已有 `one-web` 服务或手动运行的实例，不要同时启动多个监听 8787 的进程。
-- **浏览器打不开**：在运行服务的系统执行浏览器安装，确认系统库、桌面、`DISPLAY` 和文件权限；不要复制另一操作系统的浏览器缓存。
-- **公网 API 返回 403**：检查实际域名、`ONE_WEB_PUBLIC_ORIGIN`、代理转发的 Host；重启后刷新页面获取新的会话与写请求令牌。
-- **页面显示旧内容**：确认访问的是预期部署的域名，代码已更新；刷新页面并检查代理缓存配置。
-- **失败任务不能重新提交**：选中失败任务，点击“删除当前任务”，再提交原链接。删除不会撤销第三方平台已经完成的操作。
+- **Configuration changes have no effect**: Confirm that you edited `config/sheerid.local.json` under the service's working directory, that the file is saved, and that you recreated the task. The email suffix is read first from `data.organization.emailDomain`, then from the top-level `emailDomain` and `data.emailDomain`; it is recommended to set only the first to avoid configuration conflicts in multiple places.
+- **The web service fails to start**: Check whether the JSON contains comments or trailing commas and whether `web.concurrency` is a positive integer; then check the configuration permissions, the Node.js path, and the service logs.
+- **The port is in use**: First check whether there is already a `one-web` service or a manually run instance; do not start multiple processes listening on 8787 at the same time.
+- **The browser won't open**: Run the browser install on the system running the service, and confirm the system libraries, desktop, `DISPLAY`, and file permissions; do not copy the browser cache from another operating system.
+- **The public API returns 403**: Check the actual domain, `ONE_WEB_PUBLIC_ORIGIN`, and the Host forwarded by the proxy; refresh the page after a restart to get a new session and write-request token.
+- **The page shows old content**: Confirm that you are accessing the intended deployment's domain and that the code has been updated; refresh the page and check the proxy cache configuration.
+- **A failed task cannot be resubmitted**: Select the failed task, click "Delete current task," then submit the original link. Deletion does not revoke an operation that has already been completed on the third-party platform.
 
-应用配置、`.env.web` 和 `.runs/` 不应提交到 Git。发布前可用 `git ls-files` 核对跟踪文件；被 `.gitignore` 忽略不等于已上传的历史内容会自动消失。
+The application configuration, `.env.web`, and `.runs/` should not be committed to Git. Before publishing, you can use `git ls-files` to verify the tracked files; being ignored by `.gitignore` does not mean already-uploaded history content disappears automatically.

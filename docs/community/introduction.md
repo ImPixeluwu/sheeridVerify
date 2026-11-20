@@ -1,36 +1,36 @@
 # sheeridVerify
 
-用于学校教学、学术研究和授权测试的验证流程工作台。
+A verification-workflow workbench for school teaching, academic research, and authorized testing.
 
-项目地址：https://github.com/JenkinWoo/sheeridVerify
+Project address: https://github.com/JenkinWoo/sheeridVerify
 
-## 项目介绍
+## Project introduction
 
-sheeridVerify 是一个基于 Node.js 的开源学习项目，将 HTTP 状态查询、浏览器表单交互和任务队列放在同一个工作台中，方便观察任务从创建到结束的过程，研究接口调用、状态机和异步任务管理。
+sheeridVerify is a Node.js-based open-source learning project that brings HTTP status queries, browser form interaction, and a task queue together in a single workbench, making it convenient to observe a task's process from creation to completion and to study API calls, state machines, and asynchronous task management.
 
-## 已有功能
+## Existing features
 
-- Web 页面创建任务、查看队列与活动记录。
-- 设置任务并发上限，停止或恢复已停止的任务。
-- 删除失败、已结束或已停止的任务，随后可重新提交相同链接。
-- 使用 fetch 查询状态，提交后默认间隔 5 秒继续查询，遇到部分网络错误时退避重试。
-- 按当前步骤选择 Camoufox 浏览器流程或原始材料上传流程。
-- 使用访问密码、会话 Cookie、请求来源检查和写请求令牌保护接口。
+- Create tasks and view the queue and activity records from the web page.
+- Set a task concurrency limit, and stop or resume a stopped task.
+- Delete a failed, finished, or stopped task, and then resubmit the same link.
+- Use fetch to query status, keep querying every 5 seconds by default after submission, and retry with backoff on some network errors.
+- Choose the Camoufox browser flow or the raw material-upload flow based on the current step.
+- Protect the API with an access password, a session cookie, a request-origin check, and a write-request token.
 
-## 安装与部署
+## Installation and deployment
 
-需要 Node.js >= 22.15 和 npm。仓库包含示例配置、Linux / Instabox 部署指南、systemd 服务文件和 Nginx HTTPS 模板。测试使用模拟接口和本地页面，浏览器相关用例需要安装 Camoufox。
+Requires Node.js >= 22.15 and npm. The repository includes an example configuration, a Linux / Instabox deployment guide, a systemd service file, and an Nginx HTTPS template. The tests use mock endpoints and local pages; browser-related cases require Camoufox to be installed.
 
-## 用途与开源协议
+## Use and open-source license
 
-项目仅以学校教学、学术研究和获得授权的流程测试为目的提供，不保证验证成功。请使用真实且有权使用的身份资料与材料，遵守适用法律、平台条款和学校规定，不得用于伪造资格、冒用信息或骗取权益。项目与 SheerID 或任何学校均无官方隶属、认可或担保关系。
+The project is provided solely for school teaching, academic research, and authorized workflow testing, and does not guarantee that verification will succeed. Please use real identity data and materials that you are entitled to use, comply with applicable laws, platform terms, and school rules, and do not use it to forge eligibility, impersonate information, or fraudulently obtain benefits. The project has no official affiliation, endorsement, or guarantee relationship with SheerID or any school.
 
-代码采用 ISC 开源协议，完整许可和免责声明见仓库。真实平台、网络服务及第三方浏览器分别适用其自身条款和许可。
+The code uses the ISC open-source license; see the repository for the full license and disclaimer. Real platforms, network services, and the third-party browser are each subject to their own terms and licenses.
 
-## 社区交流
+## Community
 
-本项目认可并支持 LINUX DO 社区的开源分享精神，README 已加入社区链接与致谢。欢迎交流教学使用体验、报告可复现的问题或提交改进建议。
+This project recognizes and supports the open-source sharing spirit of the LINUX DO community, and the README has added a community link and acknowledgments. You are welcome to share your teaching usage experience, report reproducible issues, or submit improvement suggestions.
 
-LINUX DO：https://linux.do/
+LINUX DO: https://linux.do/
 
-本文为 AI 辅助生成的项目介绍，供发帖人审阅后以图片形式发布。
+This is an AI-assisted project introduction, to be published as an image after review by the poster.

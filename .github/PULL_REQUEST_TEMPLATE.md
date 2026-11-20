@@ -1,13 +1,13 @@
-## 问题与修改后的行为
+## Issue and changed behavior
 
-<!-- 描述具体触发条件、原行为和修改后的行为。 -->
+<!-- Describe the specific trigger conditions, the original behavior, and the changed behavior. -->
 
-## 验证
+## Verification
 
-<!-- 列出已运行的测试，说明浏览器测试是否实际执行，以及相关限制。 -->
+<!-- List the tests that were run, state whether the browser tests were actually executed, and note any related limitations. -->
 
-## 提交前确认
+## Pre-submission checklist
 
-- [ ] 已阅读 CONTRIBUTING.md 和 DISCLAIMER.md。
-- [ ] 未包含真实验证链接、个人资料、材料、密码、Cookie 或代理凭据。
-- [ ] 配置或使用方式变化已更新示例和文档。
+- [ ] I have read CONTRIBUTING.md and DISCLAIMER.md.
+- [ ] No real verification links, personal data, materials, passwords, cookies, or proxy credentials are included.
+- [ ] Changes to configuration or usage have been reflected in the examples and documentation.

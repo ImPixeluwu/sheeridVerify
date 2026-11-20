@@ -5,6 +5,6 @@ const applications = new Map([['sheerid', sheerid]]);
 
 export function getApplication(name) {
   const application = applications.get(name);
-  if (!application) throw new AutomationError('UNKNOWN_APP', '未注册该应用适配器');
+  if (!application) throw new AutomationError('UNKNOWN_APP', 'This application adapter is not registered');
   return application;
 }

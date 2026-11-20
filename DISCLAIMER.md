@@ -1,29 +1,29 @@
-# 用途说明与免责声明
+# Usage Notice and Disclaimer
 
-适用项目：[sheeridVerify](https://github.com/JenkinWoo/sheeridVerify)，由 JenkinWoo 及项目贡献者维护。
+Applicable project: [sheeridVerify](https://github.com/JenkinWoo/sheeridVerify), maintained by JenkinWoo and the project contributors.
 
-## 教学与研究用途
+## Teaching and research use
 
-本项目仅以学校教学、学术研究及获得明确授权的流程测试为目的提供，用于学习 Node.js、浏览器自动化、HTTP 接口、任务队列和状态机等技术。任何涉及真实平台的测试，均应事先取得平台及相关数据主体的必要授权，并遵守适用法律、平台服务条款、学校规定和数据处理要求。建议优先使用本地测试页、模拟数据和官方提供的测试环境。
+This project is provided solely for school teaching, academic research, and explicitly authorized workflow testing, to study technologies such as Node.js, browser automation, HTTP APIs, task queues, and state machines. Any testing involving a real platform must first obtain the necessary authorization from the platform and the relevant data subjects, and must comply with applicable laws, the platform's terms of service, school rules, and data-processing requirements. It is recommended to prefer local test pages, mock data, and officially provided test environments.
 
-不得利用本项目伪造身份、学籍或证明材料，冒用他人信息，骗取教育优惠或其他权益，绕过资格审核、访问控制或平台限制，实施未经授权的批量请求，或侵害他人隐私及其他合法权益。邮箱地址的拼接结果不代表该邮箱真实存在，也不代表用户拥有邮箱或学校身份；仅应使用本人或已获授权的真实资料。交互式真人验证应由用户自行完成。
+This project must not be used to forge identities, enrollment status, or supporting materials, to impersonate others' information, to fraudulently obtain educational discounts or other benefits, to bypass eligibility review, access control, or platform restrictions, to carry out unauthorized bulk requests, or to infringe on others' privacy or other lawful rights. The result of assembling an email address does not mean that the mailbox actually exists, nor that the user owns the mailbox or the school identity; only your own or duly authorized real data should be used. Interactive human verification should be completed by the user themselves.
 
-## 第三方平台与验证结果
+## Third-party platforms and verification results
 
-本项目是独立项目，与 SheerID、任何学校、优惠提供方及其他第三方平台不存在官方隶属、合作、认可或担保关系。文档中的第三方名称和商标仅用于说明兼容流程，其权利归各自所有者。
+This is an independent project with no official affiliation, cooperation, endorsement, or guarantee relationship with SheerID, any school, discount provider, or other third-party platform. Third-party names and trademarks in the documentation are used only to describe compatible workflows, and their rights belong to their respective owners.
 
-本项目不提供学籍、身份或资格认证服务，不保证验证成功，也不保证第三方接口长期可用。是否具有资格及最终验证结果，以相关学校和平台的官方认定为准。程序中的成功、失败或等待状态仅反映所获取的接口或页面信息，可能因接口变化、网络中断或程序缺陷而不准确。
+This project does not provide enrollment, identity, or eligibility certification services, does not guarantee that verification will succeed, and does not guarantee the long-term availability of third-party APIs. Whether you are eligible and the final verification result are determined by the official determination of the relevant school and platform. The success, failure, or waiting status in the program only reflects the API or page information obtained, and may be inaccurate due to API changes, network interruptions, or program defects.
 
-## 数据与部署责任
+## Data and deployment responsibility
 
-使用者负责确认个人资料和材料的来源、真实性、使用权限及必要同意，并对其提交行为负责。真实数据可能被发送至验证平台、配置的材料服务或代理服务，请自行审查这些服务的数据处理方式。
+The user is responsible for confirming the source, authenticity, usage rights, and necessary consent for personal data and materials, and is responsible for their submission actions. Real data may be sent to the verification platform, the configured material service, or the proxy service; please review for yourself how those services handle data.
 
-不要向公开仓库、Issue、Pull Request、截图或日志附件提交真实验证链接、姓名、出生日期、邮箱、学籍材料、密码、代理凭据、会话 Cookie 或上传签名地址。公开部署前应更换默认访问密码并配置 HTTPS。删除工作台中的任务只移除该服务内存中的记录，不撤销远端提交，也不自动删除磁盘日志或第三方已保存的数据。
+Do not submit real verification links, names, dates of birth, email addresses, enrollment materials, passwords, proxy credentials, session cookies, or upload signature addresses to a public repository, issue, pull request, screenshot, or log attachment. Before a public deployment, change the default access password and configure HTTPS. Deleting a task in the workbench only removes the record from that service's memory; it does not revoke the remote submission, nor does it automatically delete the disk logs or data already saved by a third party.
 
-## 无担保与责任限制
+## No warranty and limitation of liability
 
-软件按“原样”和“可用状态”提供。在适用法律允许的范围内，作者和贡献者不作关于准确性、安全性、适销性、特定用途适用性或服务连续性的担保，并按 [ISC 开源协议](LICENSE) 约定承担或排除相应责任。使用者应自行评估测试、部署和提交真实数据的后果；本说明不排除法律规定不得排除的责任。
+The software is provided "as is" and "as available." To the extent permitted by applicable law, the authors and contributors make no warranty as to accuracy, security, merchantability, fitness for a particular purpose, or service continuity, and bear or exclude the corresponding liability as agreed in the [ISC open-source license](LICENSE). The user should evaluate for themselves the consequences of testing, deploying, and submitting real data; this notice does not exclude liability that the law prohibits from being excluded.
 
-## 与开源协议的关系
+## Relationship to the open-source license
 
-以上教学与研究定位表达维护者的预期用途；合法授权、隐私和真实性要求不因开源而免除。软件复制、修改和分发的许可范围以 [LICENSE](LICENSE) 中的 ISC 协议为准，本说明不为该协议附加“仅限非商业”或其他领域使用限制。第三方依赖、浏览器及平台服务分别受其自身许可证和条款约束。
+The teaching-and-research positioning above expresses the maintainer's intended use; the requirements for lawful authorization, privacy, and authenticity are not waived merely because the project is open source. The scope of the license to copy, modify, and distribute the software is governed by the ISC license in [LICENSE](LICENSE); this notice does not add a "non-commercial only" or other field-of-use restriction to that license. Third-party dependencies, the browser, and platform services are each governed by their own licenses and terms.

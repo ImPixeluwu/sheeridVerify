@@ -1,25 +1,25 @@
-# LINUX DO 发帖草稿
+# LINUX DO post draft
 
-建议标题：**[开源] sheeridVerify：用于教学与研究的 Node.js 验证流程工作台**
+Suggested title: **[Open source] sheeridVerify: a Node.js verification-workflow workbench for teaching and research**
 
-发布时请选择 [开源推广](https://linux.do/tag/2234-tag/2234) 标签，将下面的介绍图片实际上传至帖子，并确认 GitHub 仓库已公开且所需源码完整可获取。下列“是”为发帖人提供的承诺模板，需要发帖人核实并同意后使用；本文件不表示帖子已经发布、截图已经上传或社区已经审核通过。
+When posting, please select the [Open-source promotion](https://linux.do/tag/2234-tag/2234) tag, actually upload the introduction image below to the post, and confirm that the GitHub repository is public and the required source is complete and available. The "Yes" items below are a commitment template provided for the poster, to be used after the poster verifies and agrees to them; this file does not mean the post has been published, the screenshot has been uploaded, or the community has reviewed and approved it.
 
-README 已加入 [LINUX DO 社区认可与致谢](../README.md#社区认可与致谢)。以下为可复制的帖子正文。
+The README has added [LINUX DO community recognition and acknowledgments](../README.md#community-recognition-and-acknowledgments). The following is the copyable post body.
 
 ---
 
-#### 本帖使用社区开源推广，符合推广要求。我申明并遵循社区要求的以下内容：
+#### This post uses community open-source promotion and meets the promotion requirements. I declare and comply with the following requirements of the community:
 
-- **我的帖子已经打上 [开源推广](https://linux.do/tag/2234-tag/2234) 标签：** 是
-- **我的开源项目完整开源，无未开源部分：** 是
-- **我的开源项目已链接认可 LINUX DO 社区：** 是
-- **我帖子内的项目介绍，AI生成、润色内容部分已截图发出：** 是
-- **以上选择我承诺是永久有效的，接受社区和佬友监督：** 是
+- **My post is already tagged with [Open-source promotion](https://linux.do/tag/2234-tag/2234):** Yes
+- **My open-source project is fully open-sourced, with no closed-source parts:** Yes
+- **My open-source project already links to and recognizes the LINUX DO community:** Yes
+- **The AI-generated and AI-polished portions of the project introduction in my post have been posted as screenshots:** Yes
+- **I commit that the choices above are permanently valid, and I accept the supervision of the community and fellow members:** Yes
 
-*以下为项目介绍正文内容，AI生成、润色内容已使用截图方式发出*
+*The following is the project introduction body; AI-generated and AI-polished content has been posted as a screenshot*
 
-![sheeridVerify 项目介绍（AI 辅助生成）](community/sheeridverify-intro.png)
+![sheeridVerify project introduction (AI-assisted)](community/sheeridverify-intro.png)
 
-项目仓库：https://github.com/JenkinWoo/sheeridVerify
+Project repository: https://github.com/JenkinWoo/sheeridVerify
 
-社区链接：https://linux.do/
+Community link: https://linux.do/

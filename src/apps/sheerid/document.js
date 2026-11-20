@@ -6,10 +6,10 @@ import { networkFetch } from '../../core/network.js';
 const MAX_BYTES = 20 * 1024 * 1024; // Buffering limit, not a claim about a program's upload limit.
 
 export function selectDocumentSource(document = {}, { file, url } = {}, data) {
-  requireValue(!(file !== undefined && url !== undefined), '--file 与 --url 只能指定一个');
+  requireValue(!(file !== undefined && url !== undefined), 'Only one of --file and --url may be specified');
   if (file !== undefined) return { path: file };
   if (url === undefined) {
-    requireValue(!(document.path?.trim() && document.url?.trim()), 'document.path 与 document.url 只能填写一个');
+    requireValue(!(document.path?.trim() && document.url?.trim()), 'Only one of document.path and document.url may be set');
     if (!document.url?.trim()) return { path: document.path };
     url = document.url;
   }
@@ -18,7 +18,7 @@ export function selectDocumentSource(document = {}, { file, url } = {}, data) {
   if (data?.firstName === undefined && data?.lastName === undefined) return { url };
   requireValue(typeof data?.firstName === 'string' && data.firstName.trim().length > 0
     && typeof data?.lastName === 'string' && data.lastName.trim().length > 0,
-    '按姓名下载材料需要同时填写 data.firstName 和 data.lastName');
+    'Downloading materials by name requires both data.firstName and data.lastName');
   const sourceUrl = downloadUrl(url);
   sourceUrl.searchParams.set('name', `${data.firstName.trim()} ${data.lastName.trim()}`);
   return { url: sourceUrl.href };
@@ -34,11 +34,11 @@ function metadata(bytes, filename) {
   } else if (bytes.subarray(0, 5).toString('ascii') === '%PDF-') {
     mimeType = 'application/pdf'; extension = '.pdf';
   }
-  requireValue(Boolean(mimeType), '材料内容必须是 PNG、JPEG 或 PDF，不接受 HTML 登录页面或 JSON 响应');
+  requireValue(Boolean(mimeType), 'The material content must be PNG, JPEG, or PDF; an HTML login page or a JSON response is not accepted');
   if (filename) {
     const suffix = extname(filename).toLowerCase();
     requireValue(suffix === extension || (extension === '.jpg' && suffix === '.jpeg'),
-      '本地材料扩展名与文件头不一致');
+      'The local material extension does not match the file header');
   }
   return { bytes, mimeType, fileSize: bytes.length, fileName: filename ?? `document${extension}` };
 }
@@ -46,10 +46,10 @@ function metadata(bytes, filename) {
 function downloadUrl(value) {
   let url;
   try { url = new URL(value); } catch {
-    throw new AutomationError('INVALID_DOCUMENT_URL', '材料网络地址不是有效 URL');
+    throw new AutomationError('INVALID_DOCUMENT_URL', 'The material network address is not a valid URL');
   }
   requireValue(['http:', 'https:'].includes(url.protocol) && !url.username && !url.password,
-    '材料网络地址仅支持无嵌入账号密码的 HTTP/HTTPS URL');
+    'The material network address only supports HTTP/HTTPS URLs without embedded credentials');
   url.hash = '';
   return url;
 }
@@ -68,40 +68,40 @@ async function readRemoteDocument(source, { signal, timeoutMs = 120000 } = {}) {
         cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
       if (![301, 302, 303, 307, 308].includes(response.status)) break;
       await response.body?.cancel();
-      requireValue(redirects < 3, '材料下载重定向次数超过 3 次');
+      requireValue(redirects < 3, 'The material download exceeded 3 redirects');
       const location = response.headers.get('location');
-      requireValue(Boolean(location), '材料下载重定向缺少目标地址');
+      requireValue(Boolean(location), 'The material download redirect is missing a target address');
       const next = downloadUrl(new URL(location, url).href);
-      requireValue(!(url.protocol === 'https:' && next.protocol === 'http:'), '材料下载不允许从 HTTPS 重定向到 HTTP');
+      requireValue(!(url.protocol === 'https:' && next.protocol === 'http:'), 'The material download does not allow a redirect from HTTPS to HTTP');
       url = next;
     }
-    requireValue(response.ok && response.status !== 206, '材料下载未返回完整的成功响应');
+    requireValue(response.ok && response.status !== 206, 'The material download did not return a complete successful response');
     const length = response.headers.get('content-length');
     if (length !== null) {
       requireValue(/^\d+$/.test(length) && Number(length) > 0 && Number(length) <= MAX_BYTES,
-        '网络材料必须非空且不超过本项目的 20 MiB 限制');
+        'The network material must be non-empty and must not exceed this project\'s 20 MiB limit');
     }
-    requireValue(Boolean(response.body), '材料下载响应没有文件内容');
+    requireValue(Boolean(response.body), 'The material download response has no file content');
     const chunks = [];
     let size = 0;
     for await (const chunk of response.body) {
       size += chunk.byteLength;
-      requireValue(size <= MAX_BYTES, '网络材料超过本项目的 20 MiB 限制');
+      requireValue(size <= MAX_BYTES, 'The network material exceeds this project\'s 20 MiB limit');
       chunks.push(chunk);
     }
     downloadSignal.throwIfAborted();
-    requireValue(size > 0, '网络材料内容为空');
+    requireValue(size > 0, 'The network material content is empty');
     // Fetch decompresses bodies; compare Content-Length only for unencoded responses.
     if (length !== null && !response.headers.get('content-encoding')) {
-      requireValue(size === Number(length), '网络材料下载不完整');
+      requireValue(size === Number(length), 'The network material download is incomplete');
     }
     return metadata(Buffer.concat(chunks, size));
   } catch (error) {
-    if (signal?.aborted) throw new AutomationError('CANCELLED', '材料下载已取消');
-    if (deadline.aborted) throw new AutomationError('DOCUMENT_DOWNLOAD_TIMEOUT', '材料下载超时');
+    if (signal?.aborted) throw new AutomationError('CANCELLED', 'The material download was canceled');
+    if (deadline.aborted) throw new AutomationError('DOCUMENT_DOWNLOAD_TIMEOUT', 'The material download timed out');
     if (error instanceof AutomationError) throw error;
     // Do not expose source URLs, query parameters or server response bodies in errors.
-    throw new AutomationError('DOCUMENT_DOWNLOAD_FAILED', '无法下载网络材料，请检查地址和网络连接');
+    throw new AutomationError('DOCUMENT_DOWNLOAD_FAILED', 'Could not download the network material; please check the address and network connection');
   } finally {
     if (response?.body && !response.body.locked) await response.body.cancel().catch(() => {});
   }
@@ -110,23 +110,23 @@ async function readRemoteDocument(source, { signal, timeoutMs = 120000 } = {}) {
 export async function readDocument(source, options = {}) {
   options.signal?.throwIfAborted();
   if (typeof source === 'string') return readLocalDocument(source, options.signal);
-  requireValue(source && !(source.path !== undefined && source.url !== undefined), '只能指定一种材料来源');
+  requireValue(source && !(source.path !== undefined && source.url !== undefined), 'Only one material source may be specified');
   if (source.url !== undefined) return readRemoteDocument(source.url, options);
   return readLocalDocument(source.path, options.signal);
 }
 
 async function readLocalDocument(filename, signal) {
   requireValue(typeof filename === 'string' && filename.trim().length > 0,
-    '请通过 --file / document.path 指定本地材料，或 --url / document.url 指定网络材料；尚未修改远端验证状态');
-  requireValue(!/^[a-z][a-z\d+.-]*:\/\//i.test(filename), 'document.path 仅接受本地文件路径');
+    'Please specify a local material via --file / document.path, or a network material via --url / document.url; the remote verification status has not been modified');
+  requireValue(!/^[a-z][a-z\d+.-]*:\/\//i.test(filename), 'document.path only accepts a local file path');
   const path = resolve(filename);
   let file;
   try { file = await open(path, 'r'); } catch (cause) {
-    throw new AutomationError('DOCUMENT_UNREADABLE', '无法打开指定的本地证明文件', { cause });
+    throw new AutomationError('DOCUMENT_UNREADABLE', 'Could not open the specified local proof file', { cause });
   }
   try {
     const stat = await file.stat();
-    requireValue(stat.isFile() && stat.size > 0 && stat.size <= MAX_BYTES, '证明文件必须是非空普通文件且不超过本项目的 20 MiB 限制');
+    requireValue(stat.isFile() && stat.size > 0 && stat.size <= MAX_BYTES, 'The proof file must be a non-empty regular file and must not exceed this project\'s 20 MiB limit');
     const bytes = Buffer.alloc(stat.size + 1);
     let size = 0;
     while (size < bytes.length) {
@@ -135,7 +135,7 @@ async function readLocalDocument(filename, signal) {
       if (read.bytesRead === 0) break;
       size += read.bytesRead;
     }
-    requireValue(size === stat.size, '文件读取期间大小发生变化，请文件保存完成后重新运行');
+    requireValue(size === stat.size, 'The size changed while reading the file; please run again after the file has finished saving');
     const data = bytes.subarray(0, size);
     return metadata(data, basename(path));
   } finally {

@@ -9,14 +9,14 @@ import { withNetwork } from '../../core/network.js';
 
 function describe(state) {
   const statuses = {
-    success: ['verified', '验证已通过'], pending: ['pending', '材料正在等待审核'],
-    docUpload: ['document_required', '当前需要上传证明材料'], sso: ['sso_required', '当前需要学校登录或材料验证'],
-    emailLoop: ['email_required', '当前需要完成邮件验证'],
-    collectStudentPersonalInfo: ['personal_info_required', '当前仍需完成学生资料步骤'],
-    error: ['rejected', '当前验证被拒绝或发生错误，已停止流程'],
+    success: ['verified', 'Verification has passed'], pending: ['pending', 'The materials are waiting for review'],
+    docUpload: ['document_required', 'Supporting materials must currently be uploaded'], sso: ['sso_required', 'School login or material verification is currently required'],
+    emailLoop: ['email_required', 'Email verification must currently be completed'],
+    collectStudentPersonalInfo: ['personal_info_required', 'The student-data step still needs to be completed'],
+    error: ['rejected', 'The verification is currently rejected or an error occurred; the flow has stopped'],
   };
   const [status, message] = state.errorIds.length ? statuses.error
-    : Object.hasOwn(statuses, state.currentStep) ? statuses[state.currentStep] : ['not_actionable', '当前步骤不在材料上传流程内'];
+    : Object.hasOwn(statuses, state.currentStep) ? statuses[state.currentStep] : ['not_actionable', 'The current step is not part of the material-upload flow'];
   return { status, message, ...state, code: 'VERIFICATION_STATE' };
 }
 
@@ -26,8 +26,8 @@ export function runDocumentWorkflow(config, options = {}) {
 
 async function executeDocumentWorkflow(config, options) {
   const { file, url, signal } = options;
-  requireValue(config.app === 'sheerid', '当前纯接口材料流程仅支持 sheerid');
-  requireValue(!(file !== undefined && url !== undefined), '--file 与 --url 只能指定一个');
+  requireValue(config.app === 'sheerid', 'The current pure-API material flow only supports sheerid');
+  requireValue(!(file !== undefined && url !== undefined), 'Only one of --file and --url may be specified');
   const client = createVerificationClient(config, signal);
   return withTaskLock(config.artifactsDir, `sheerid:${client.verificationId}`,
     () => executeLockedDocumentWorkflow(config, options, client));
@@ -114,11 +114,11 @@ async function executeLockedDocumentWorkflow(config, { submit = false, file, url
     const documents = initiated.body.documents;
     if (!Array.isArray(documents) || documents.length !== 1 || !documents[0]
       || (documents[0].errors != null && (!Array.isArray(documents[0].errors) || documents[0].errors.length))) {
-      throw new AutomationError('UPLOAD_NOT_ALLOCATED', '接口未返回单个可上传的文档记录，未上传文件');
+      throw new AutomationError('UPLOAD_NOT_ALLOCATED', 'The API did not return a single uploadable document record; the file was not uploaded');
     }
     if ((documents[0].mimeType != null && documents[0].mimeType !== document.mimeType)
       || (documents[0].fileSize != null && documents[0].fileSize !== document.fileSize)) {
-      throw new AutomationError('UPLOAD_METADATA_MISMATCH', '服务端文档记录与材料的格式或大小不一致，未上传文件');
+      throw new AutomationError('UPLOAD_METADATA_MISMATCH', 'The server-side document record does not match the material\'s format or size; the file was not uploaded');
     }
     const uploadUrl = validateUploadUrl(documents[0].uploadUrl);
     await write('upload_bytes', () => client.upload(uploadUrl, document));
@@ -155,7 +155,7 @@ async function executeLockedDocumentWorkflow(config, { submit = false, file, url
       } else if (!['pending', 'emailLoop', 'sso', 'docUpload'].includes(state.currentStep)
         && !(uncertainStage === 'personal_info' && state.currentStep === 'collectStudentPersonalInfo')) {
         result = envelope({ status: 'failed', code: 'UNSUPPORTED_VERIFICATION_STEP', ...state,
-          message: '当前步骤无法由材料流程继续，请按验证页面提示处理' }); break;
+          message: 'The current step cannot be continued by the material flow; please follow the instructions on the verification page' }); break;
       }
       stage = 'wait_review';
       log('waiting_for_review', { stage, ...state, uploadAttempt,
@@ -167,8 +167,8 @@ async function executeLockedDocumentWorkflow(config, { submit = false, file, url
   } catch (error) {
     result = envelope({ status: 'failed',
       code: signal?.aborted ? 'CANCELLED' : error instanceof AutomationError ? error.code : 'DOCUMENT_WORKFLOW_ERROR',
-      message: signal?.aborted ? '任务已停止；已提交操作的最终状态以服务端为准'
-        : error instanceof AutomationError ? error.message : '材料接口流程失败，已停止操作',
+      message: signal?.aborted ? 'The task has stopped; the final status of a submitted operation is determined by the server'
+        : error instanceof AutomationError ? error.message : 'The material API flow failed; the operation has stopped',
       lastKnownStep: state?.currentStep, submissionUncertain: Boolean(uncertainStage || inFlight),
       uncertainStage: uncertainStage || (inFlight ? stage : undefined),
     });

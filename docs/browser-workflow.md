@@ -1,81 +1,81 @@
-# 历史浏览器流程说明
+# Historical browser workflow guide
 
-本文件保留原浏览器实现的说明；其中 npm start / npm run submit 的历史用法已不适用，当前命令行为以根目录 README.md 为准。浏览器实现仍可通过库入口 runAutomation 调用。
+This file preserves the description of the original browser implementation; the historical usage of `npm start` / `npm run submit` here no longer applies, and the current command-line behavior is governed by the root `README.md`. The browser implementation can still be called through the library entry point `runAutomation`.
 
-# Camoufox 应用自动化
+# Camoufox application automation
 
-Node.js ESM 项目，复用现有 `camoufox` / `playwright-core`，不引入运行依赖。首个适配器负责 SheerID 学生信息表单，浏览器层与业务适配器分离。
+A Node.js ESM project that reuses the existing `camoufox` / `playwright-core` without introducing runtime dependencies. The first adapter handles the SheerID student-information form, with the browser layer separated from the business adapter.
 
-## 使用
+## Usage
 
-要求 Node.js >= 22.15。首次安装：
+Requires Node.js >= 22.15. First-time installation:
 
 ```powershell
 npm ci
 npm run browser:install
 ```
 
-现有 Windows 浏览器安装补丁保留在 `scripts/install-browser.js` 中，仅适用 Camoufox 0.5.9；升级该依赖时需同步检查补丁。
+The existing Windows browser-install patch is kept in `scripts/install-browser.js` and applies only to Camoufox 0.5.9; when upgrading that dependency, check the patch in sync.
 
-本工作区已生成 `config/sheerid.local.json` 并写入提供的验证链接；该文件被 Git 忽略。新工作区可复制示例：
+This workspace has already generated `config/sheerid.local.json` and written the provided verification link into it; that file is ignored by Git. A new workspace can copy the example:
 
 ```powershell
 Copy-Item config/sheerid.example.json config/sheerid.local.json
 ```
 
-填写本地配置中的国家、姓名、邮箱、出生日期（`YYYY-MM-DD`）和学校信息。`data.country` 是必填项，例如 `United States` 或 `US`，当前页面未选国家时会禁用学校输入框。`organization.name` 是搜索文本，`organization.optionText` 推荐填写带城市/州的完整候选名称，例如搜索 `Marshall University`、选项填 `Marshall University Huntington, WV`。仅填写本人或获授权提交的信息。
+Fill in the country, name, email, date of birth (`YYYY-MM-DD`), and school information in the local configuration. `data.country` is required, for example `United States` or `US`; the school input box is disabled when the current page has no country selected. `organization.name` is the search text, and `organization.optionText` is recommended to be the full candidate name with city/state, for example search `Marshall University` and set the option to `Marshall University Huntington, WV`. Only fill in your own information or information you are authorized to submit.
 
-学校选项优先完整匹配，并兼容逗号与空白分隔符差异：页面选项把校名和地点显示在两个文本块中，其可访问名称是 `Marshall University Huntington, WV`，而选中后的输入框可能显示 `Marshall University, Huntington, WV`。兼容匹配保留所有校名、城市及州的文字，并要求候选唯一。
+School options are matched by full match first, with tolerance for comma and whitespace separator differences: a page option displays the school name and location in two text blocks, so its accessible name is `Marshall University Huntington, WV`, while the input box after selection may display `Marshall University, Huntington, WV`. The tolerant match keeps all of the school name, city, and state text, and requires the candidate to be unique.
 
-当 `optionText` 与搜索校名 `name` 相同时，也允许唯一的“完整校名 + 逗号或括号中的地点”候选，或具有独立完整校名文本块的候选；不会通过任意子串或默认第一项选学校。如果匹配多个校区，记录 `AMBIGUOUS_OPTION`，此时请填写完整候选名称。显式填写了完整校区名称时，不使用地点后缀回退。
+When `optionText` is the same as the search school name `name`, a unique candidate of "full school name + location in a comma or parentheses," or a candidate with an independent full-school-name text block, is also allowed; a school is not chosen by an arbitrary substring or by defaulting to the first item. If multiple campuses match, it records `AMBIGUOUS_OPTION`, in which case you should fill in the full candidate name. When the full campus name is explicitly provided, the location-suffix fallback is not used.
 
 ```powershell
-# 自动填写并提交一次
+# Auto-fill and submit once
 npm run submit
 
-# 指定其他配置
+# Specify another configuration
 npm run submit -- --config config/sheerid.local.json
 
-# 只填写、不点击提交；完成后保留浏览器供查看或手动操作
+# Only fill in, do not click submit; keep the browser open afterward for viewing or manual operation
 npm start
 ```
 
-可以使用 `$env:AUTOMATION_URL = '完整验证链接'` 覆盖配置 URL。链接需要包含 `verificationId`；过期链接需更新。所有相对路径基于启动命令时的工作目录。
+You can use `$env:AUTOMATION_URL = 'full verification link'` to override the configured URL. The link must include `verificationId`; an expired link must be updated. All relative paths are based on the working directory at the time the command is started.
 
-### 启动前查询验证状态
+### Querying the verification status before startup
 
-`npm start` 和 `npm run submit` 都先从有效配置 URL 提取 `verificationId`，通过 Node.js 内置 `fetch` 请求 `GET https://my.sheerid.com/rest/v2/verification/{verificationId}`。验证 ID 不写死在代码中，也不需要另配接口 URL。只有接口返回 `currentStep: collectStudentPersonalInfo` 且 `errorIds` 为空，才校验表单资料并启动 Camoufox。
+Both `npm start` and `npm run submit` first extract `verificationId` from a valid configured URL and request `GET https://my.sheerid.com/rest/v2/verification/{verificationId}` via Node.js's built-in `fetch`. The verification ID is not hard-coded in the code, and no separate API URL needs to be configured. Only when the API returns `currentStep: collectStudentPersonalInfo` with an empty `errorIds` does it validate the form data and launch Camoufox.
 
-| 接口步骤/结果 | 行为 |
+| API step/result | Behavior |
 | --- | --- |
-| `collectStudentPersonalInfo` 且无错误 | 校验资料，打开浏览器，填写；提交模式再提交一次 |
-| `success` | 记录 `verified`，不打开浏览器 |
-| `docUpload` / `sso` / `emailLoop` / `pending` | 报告需要材料、学校登录、邮件验证或等待审核，不打开浏览器 |
-| `error` 或非空 `errorIds` | 记录 `rejected` 和错误码，不打开浏览器 |
-| 其他步骤 | 记录 `not_actionable`，不打开浏览器 |
-| 请求失败、超时、HTTP 错误、JSON/字段异常、返回 ID 不匹配 | 报告状态检查错误，不打开浏览器 |
+| `collectStudentPersonalInfo` with no error | Validate the data, open the browser, fill in; submit mode submits once more |
+| `success` | Record `verified`, do not open the browser |
+| `docUpload` / `sso` / `emailLoop` / `pending` | Report that material, school login, email verification, or waiting for review is required; do not open the browser |
+| `error` or a non-empty `errorIds` | Record `rejected` and the error code, do not open the browser |
+| Other steps | Record `not_actionable`, do not open the browser |
+| Request failure, timeout, HTTP error, JSON/field anomaly, returned ID mismatch | Report a status-check error, do not open the browser |
 
-`timeouts.apiMs` 默认 20000 毫秒，覆盖请求及读取 JSON；可配置范围 1000–300000。请求只读、不自动重试、不跟随跳转，失败时不会回退到浏览器尝试。状态检查阶段为 `preflight`；结果包含 `browserOpened`，正常状态响应还包含 `currentStep`、`errorIds`，不保存接口原始内容。无需填写的状态不要求个人资料完整，结果保存后直接释放任务锁并退出。已有浏览器进程不会被这项检查关闭。
+`timeouts.apiMs` defaults to 20000 milliseconds, covering the request and reading the JSON; the configurable range is 1000–300000. The request is read-only, does not retry automatically, does not follow redirects, and does not fall back to a browser attempt on failure. The status-check phase is `preflight`; the result includes `browserOpened`, and a normal status response also includes `currentStep` and `errorIds`, without saving the API's raw content. A status that does not require filling does not require complete personal data; after the result is saved, it releases the task lock and exits directly. An existing browser process is not closed by this check.
 
-状态可能在检查后发生变化，因此打开页面后仍保留错误页检查和提交按钮就绪判断。此次开发仅直接查询了用户指定的状态接口，未运行填表或提交测试。
+The status may change after the check, so after the page opens it still keeps the error-page check and the submit-button-ready determination. This development only directly queried the status API specified by the user and did not run a fill or submit test.
 
-有界面模式默认保留浏览器，填写、提交或执行失败后均不会自动关闭已有页面。完成后会出现 `browser_kept_open` 日志，脚本继续等待；可手动查看、修改或继续操作页面。关闭任务标签页/窗口，或在终端按 Ctrl+C，才会结束等待并清理浏览器及任务锁。已有配置不必修改；如果需要自动关闭，设置 `browser.keepOpen: false`。无界面模式默认自动关闭，不允许设置 `keepOpen: true`。
+Headed mode keeps the browser open by default and does not automatically close an existing page after filling, submitting, or a failed run. When done, a `browser_kept_open` log appears and the script keeps waiting; you can manually view, modify, or keep operating the page. Only closing the task tab/window, or pressing Ctrl+C in the terminal, ends the wait and cleans up the browser and the task lock. The existing configuration does not need to be changed; if you want automatic closing, set `browser.keepOpen: false`. Headless mode closes automatically by default and does not allow setting `keepOpen: true`.
 
-### 每次启动的会话与指纹
+### Session and fingerprint on each startup
 
-每次运行都新建 Camoufox 浏览器进程，再用 Camoufox `NewContext()` 生成并安装新的上下文指纹。启动时显式禁用持久化上下文和固定预设，不传入已保存指纹、用户资料目录或 `storageState`，因此不会恢复上次的 Cookie、本地存储或登录状态。日志中的 `browser_identity_created` / `FRESH_CONTEXT` 表示该创建流程已完成，并非检测网站的指纹唯一性证明。
+Each run creates a new Camoufox browser process, then uses Camoufox's `NewContext()` to generate and install a new context fingerprint. At startup, persistent context and fixed presets are explicitly disabled, and no saved fingerprint, user profile directory, or `storageState` is passed in, so the previous cookies, local storage, or login state are not restored. The `browser_identity_created` / `FRESH_CONTEXT` in the logs indicates that this creation flow has completed; it is not proof of fingerprint uniqueness against a detection website.
 
-Camoufox 0.5.9 在未传入固定指纹/预设时默认重新随机生成，`NewContext()` 也会重新生成上下文指纹。随机生成并不保证每个字段变化或绝对无重复；浏览器版本、配置语言、操作系统及部分硬件相关值可能保持相同。本改动未启用代理，出口 IP 不会因此自动改变。浏览器窗口保持打开时，刷新或继续操作仍属于当前上下文；关闭后重新启动才创建新的上下文。
+Camoufox 0.5.9 re-randomizes by default when no fixed fingerprint/preset is passed in, and `NewContext()` also regenerates the context fingerprint. Random generation does not guarantee that every field changes or that there are absolutely no duplicates; the browser version, configured language, operating system, and some hardware-related values may stay the same. This change does not enable a proxy, so the exit IP does not change automatically as a result. While the browser window stays open, refreshing or continuing to operate still belongs to the current context; a new context is created only after it is closed and restarted.
 
-浏览器会话与 SheerID 验证会话不同：配置 URL 中相同的 `verificationId` 仍对应服务器上的同一笔验证，换浏览器指纹不会创建新的验证记录。此次调整依据已安装依赖源码完成，未启动多轮浏览器或运行指纹差异测试。
+The browser session is different from the SheerID verification session: the same `verificationId` in the configured URL still corresponds to the same verification on the server, and changing the browser fingerprint does not create a new verification record. This adjustment was made based on the installed dependency's source and did not launch multiple browser rounds or run fingerprint-difference tests.
 
-国家、月份和学校同时支持原生 select 与具有 ARIA `option` 的自定义下拉框。自定义下拉框会展开菜单并选择对应选项，不会只写入输入框文字。国家的完整名称和学校 `optionText` 应与页面显示文字一致；两位国家代码和出生月份会按 `browser.locale` 转换为选项文字，请使该配置与页面语言一致（当前页面为英语，默认 `en-US`）。可选 `data.consent: true` 用于勾选页面上的同意项，未配置时不操作该字段。
+The country, month, and school all support both a native `select` and a custom dropdown with ARIA `option`s. A custom dropdown expands the menu and selects the corresponding option, rather than only writing text into the input box. The full country name and the school `optionText` should match the text displayed on the page; a two-letter country code and the birth month are converted to option text per `browser.locale`, so keep that configuration consistent with the page language (the current page is English, default `en-US`). The optional `data.consent: true` is used to check the consent item on the page; when not configured, that field is not operated.
 
-### 随机填写间隔
+### Random fill intervals
 
-默认逐字输入，每字符随机间隔 40–120 毫秒；每个字段开始前和自定义下拉选项点击前随机等待 500–1200 毫秒；提交前随机等待 1000–2000 毫秒。普通文本填写完成后失焦以触发表单校验。等待和输入支持 Ctrl+C 取消，不会因重试自动再次提交。
+By default it types character by character, with a random interval of 40–120 milliseconds per character; a random wait of 500–1200 milliseconds before each field starts and before a custom dropdown option click; and a random wait of 1000–2000 milliseconds before submission. After a normal text field is filled, it blurs to trigger form validation. Waits and typing support Ctrl+C cancellation and do not automatically resubmit on retry.
 
-旧配置直接使用默认值。可在本地 JSON 的顶层添加 `interaction` 调整（下方为配置片段）：
+An old configuration uses the defaults directly. You can add an `interaction` adjustment at the top level of the local JSON (the following is a configuration snippet):
 
 ```json
 {
@@ -87,21 +87,21 @@ Camoufox 0.5.9 在未传入固定指纹/预设时默认重新随机生成，`New
 }
 ```
 
-单位均为毫秒，`min` 和 `max` 必须是整数且 `0 <= min <= max`；字符间隔最大 1000，其他间隔最大 10000。将某项的 min/max 都设为 0 可关闭该项等待。`interaction_delay` 日志报告字段名和本次间隔，不记录输入内容。
+The units are all milliseconds; `min` and `max` must be integers with `0 <= min <= max`; the character interval has a maximum of 1000 and the other intervals a maximum of 10000. Setting both min/max of an item to 0 disables that wait. The `interaction_delay` log reports the field name and this interval, without recording the input content.
 
-### 页面加载与动态表单等待
+### Page load and dynamic form waiting
 
-自动填写的执行顺序为 `preflight` 查询接口确认需要填写 → 校验资料 → 打开页面 → `wait_ready` 等待页面 `load`、国家控件可用及姓名/邮箱可编辑 → `fill` 选择国家 → 等待学校输入框启用并选择学校 → 填写姓名 → 填写生日（月、日、年）→ 填写邮箱 → 可选提交。初始阶段不等待尚被禁用的学校输入框，以免产生循环等待。国家和月份的只读下拉控件只要求可用，不要求能够输入文本。学校搜索结果单独等待精确匹配选项。
+The execution order of auto-fill is: `preflight` queries the API to confirm that filling is required → validate the data → open the page → `wait_ready` waits for the page `load`, the country control to be available, and the name/email to be editable → `fill` select the country → wait for the school input box to be enabled and select the school → fill in the name → fill in the date of birth (month, day, year) → fill in the email → optional submit. The initial phase does not wait for the still-disabled school input box, to avoid a waiting loop. The read-only dropdown controls for country and month only require availability, not the ability to enter text. School search results separately wait for the exact-match option.
 
-`timeouts.readyMs` 默认 **120000 毫秒**，现有本地配置不用修改就会生效；可在 `timeouts` 中显式设置，范围为 1000–300000。页面加载和首轮表单检查共享该预算，之后动态字段各自使用该等待预算。`actionMs` 仍用于普通操作，`navigationMs` 用于初始导航。
+`timeouts.readyMs` defaults to **120000 milliseconds**, and the existing local configuration takes effect without changes; it can be set explicitly under `timeouts`, in the range 1000–300000. The page load and the first round of form checks share this budget, after which each dynamic field uses this wait budget. `actionMs` is still used for normal operations, and `navigationMs` for the initial navigation.
 
-日志出现 `form_ready` 后才进入填写；`field_started` / `field_filled` 显示当前操作的字段名，`waiting_for_fields` 会在待就绪字段变化或每隔 10 秒时报告等待状态，不记录字段值。超过等待时间会记录 `PAGE_LOAD_TIMEOUT` 或 `FORM_NOT_READY`；后者列出未出现或不可操作的字段。下拉选项未匹配时报告 `OPTION_NOT_FOUND` 及字段名。如果页面已经显示而字段仍无法匹配，需要调整选择器，单纯增加等待时间不能解决选择器不匹配。
+Only after `form_ready` appears in the logs does it enter filling; `field_started` / `field_filled` show the name of the field currently being operated, and `waiting_for_fields` reports the wait status when the set of fields awaiting readiness changes or every 10 seconds, without recording field values. Exceeding the wait time records `PAGE_LOAD_TIMEOUT` or `FORM_NOT_READY`; the latter lists the fields that did not appear or are not operable. When a dropdown option does not match, it reports `OPTION_NOT_FOUND` with the field name. If the page is already displayed but a field still cannot be matched, the selectors need adjusting; simply increasing the wait time cannot solve a selector mismatch.
 
-提交前等待按钮启用，最多使用 `readyMs` 的等待预算，并每 10 秒报告 `waiting_for_submit`；持续禁用或无法点击会报告 `SUBMIT_NOT_READY`。当前页面的 `#sid-step-error`（例如 “We couldn't continue your verification”）会被识别为 `VERIFICATION_UNAVAILABLE`，停止自动操作并保留窗口。随机延迟不会解除服务端拒绝，需按页面提示处理。日志会在浏览器保持打开时立即显示已分类错误的说明；本工具不强制启用按钮或自动重新发起验证。
+Before submission it waits for the button to become enabled, using at most the `readyMs` wait budget, and reports `waiting_for_submit` every 10 seconds; a persistently disabled or unclickable button reports `SUBMIT_NOT_READY`. The current page's `#sid-step-error` (for example "We couldn't continue your verification") is recognized as `VERIFICATION_UNAVAILABLE`, stopping automatic operation and keeping the window open. A random delay does not lift a server-side rejection, which must be handled per the page's instructions. The logs immediately show the description of a classified error while the browser stays open; this tool does not force the button to be enabled or automatically re-initiate verification.
 
-## 当前验证范围
+## Current verification scope
 
-已查看用户打开的实际页面，核对学校 `sid-college-name`、生日 `sid-birthdate-day` / `sid-birthdate-year`、国家及月份下拉框和提交按钮的控件标识，并据此修正适配器。按要求未运行自动化测试或重新执行填表/提交流程；下拉选择交互和提交响应仍未端到端验证。目标表单可能因地区、语言或项目设置而不同。选择器集中在 `src/apps/sheerid/selectors.js`，也可以在 JSON 中逐字段覆盖：
+The actual page the user opened has been reviewed, and the control identifiers of the school `sid-college-name`, the date of birth `sid-birthdate-day` / `sid-birthdate-year`, the country and month dropdowns, and the submit button have been checked, with the adapter corrected accordingly. As requested, automated tests were not run and the fill/submit flow was not re-executed; the dropdown-selection interaction and the submit response are still not verified end to end. The target form may differ by region, language, or program settings. The selectors are centralized in `src/apps/sheerid/selectors.js` and can also be overridden field by field in JSON:
 
 ```json
 {
@@ -112,66 +112,66 @@ Camoufox 0.5.9 在未传入固定指纹/预设时默认重新随机生成，`New
 }
 ```
 
-以上只是配置片段，应合并进完整配置。数组按优先级查找可见元素，匹配多个元素会报错，避免选错表单。提交结果监听的是同一 verificationId 的 `POST /rest/v2/verification/{id}/step/collectStudentPersonalInfo`；若该项目使用不同端点，需要修改适配器。只有接口明确返回 `currentStep: success` 才标记审核通过。
+The above is only a configuration snippet and should be merged into the full configuration. The array looks up visible elements in priority order, and matching multiple elements raises an error, to avoid selecting the wrong form. The submit result listens to `POST /rest/v2/verification/{id}/step/collectStudentPersonalInfo` for the same verificationId; if the program uses a different endpoint, the adapter must be modified. Only when the API explicitly returns `currentStep: success` is review marked as passed.
 
-## 结果与运行管理
+## Results and run management
 
-标准输出包含最终 JSON；标准错误输出结构化事件日志。`.runs/<runId>.json` 保存结果，不保存姓名、邮箱、学校、出生日期、验证链接或接口原始内容，也不自动生成截图、HAR、trace。
+Standard output contains the final JSON; standard error outputs structured event logs. `.runs/<runId>.json` stores the result; it does not store the name, email, school, date of birth, verification link, or the API's raw content, nor does it automatically generate screenshots, HAR, or a trace.
 
-| 状态 | 含义 | 退出码 |
+| Status | Meaning | Exit code |
 | --- | --- | --- |
-| `filled` | 仅完成填写 | 0 |
-| `verified` | 接口明确确认验证成功 | 0 |
-| `document_required` / `sso_required` / `email_required` | 需要材料、学校登录或邮件验证 | 2 |
-| `pending` | 等待审核 | 2 |
-| `not_actionable` | 接口返回不支持的步骤，未启动浏览器 | 2 |
-| `validation_failed` / `rejected` / `failed` | 字段校验、服务拒绝或执行失败 | 1 |
-| `submission_unknown` | 已尝试提交，但无法确认结果 | 3 |
+| `filled` | Filling only was completed | 0 |
+| `verified` | The API explicitly confirmed that verification succeeded | 0 |
+| `document_required` / `sso_required` / `email_required` | Material, school login, or email verification is required | 2 |
+| `pending` | Waiting for review | 2 |
+| `not_actionable` | The API returned an unsupported step; the browser was not launched | 2 |
+| `validation_failed` / `rejected` / `failed` | Field validation, a service rejection, or an execution failure | 1 |
+| `submission_unknown` | Submission was attempted, but the result cannot be confirmed | 3 |
 
-收到中断信号时退出码为 130。后续材料上传、学校登录、邮件验证及验证码由使用者继续处理，本适配器只实现初始个人信息提交。
+The exit code is 130 when an interrupt signal is received. Subsequent material upload, school login, email verification, and CAPTCHA are handled by the user; this adapter only implements the initial personal-information submission.
 
-每次运行只点击一次，不自动重试提交。点击前先写入 `submission_unknown` 记录，防止崩溃留下虚假的成功结果。超时或中断后先检查验证页面/结果记录，再决定是否重跑，不能把未知结果当作提交失败。任务锁按验证 ID 的 SHA-256 创建，阻止共享同一 `.runs` 目录的进程同时操作同一会话；它不提供跨机器分布式锁或跨运行业务幂等。异常终止后可能留下 `.lock`，确认记录中的 PID 不再运行后再手动删除对应锁文件。
+Each run clicks only once and does not automatically retry submission. Before clicking, a `submission_unknown` record is written first, to prevent a crash from leaving a false success result. After a timeout or interruption, first check the verification page/result record, then decide whether to re-run; an unknown result must not be treated as a submission failure. The task lock is created from the SHA-256 of the verification ID, preventing processes that share the same `.runs` directory from operating on the same session at the same time; it does not provide a cross-machine distributed lock or cross-run business idempotency. An abnormal termination may leave a `.lock`; after confirming that the PID in the record is no longer running, manually delete the corresponding lock file.
 
-自动化步骤结束后立即保存结果；浏览器保留期间仍持有任务锁，防止另一进程重复操作同一会话。手动操作不会改写自动化结果；库调用和 CLI 最终标准输出会等窗口关闭后返回。运行中或保留窗口期间收到 SIGINT/SIGTERM 会尝试关闭已启动浏览器并释放任务锁；启动阶段的中断需等启动返回后释放资源。个人配置、运行目录均被 Git 忽略，实际文件访问权限由本机账户/Windows ACL 管理。
+The result is saved immediately after the automation step ends; while the browser is kept, it still holds the task lock, to prevent another process from operating on the same session. Manual operations do not overwrite the automation result; the library call and the CLI's final standard output return after the window is closed. SIGINT/SIGTERM received during a run or while the window is kept tries to close the launched browser and release the task lock; an interruption during the startup phase must wait for startup to return before releasing resources. The personal configuration and the run directory are both ignored by Git, and actual file access permissions are managed by the local account / Windows ACL.
 
-## 扩展应用
+## Extending the application
 
 ```text
 src/
-  cli.js                  命令行参数、信号、退出码
-  index.js                库入口
-  core/                   配置校验、错误、日志、结果存储、执行器
-  browser/                Camoufox 生命周期、通用表单操作
+  cli.js                  Command-line arguments, signals, exit codes
+  index.js                Library entry point
+  core/                   Configuration validation, errors, logging, result storage, executor
+  browser/                Camoufox lifecycle, generic form operations
   apps/
-    registry.js           应用注册表
-    sheerid/              SheerID 校验、字段和提交结果解释
-config/                   示例及私有本地配置
+    registry.js           Application registry
+    sheerid/              SheerID validation, fields, and submit-result interpretation
+config/                   Example and private local configuration
 ```
 
-新增 `src/apps/<app>/index.js` 并在注册表中注册，提供以下接口：
+Add `src/apps/<app>/index.js` and register it in the registry, providing the following interface:
 
 ```javascript
 export const application = {
-  validate(config) {},             // 校验 URL 等状态查询所需的基础配置
+  validate(config) {},             // Validate the basic configuration needed for a status query, such as the URL
   identity(config) { return 'application:session-key'; },
-  async preflight({ config, signal, log }) { // 可选：在启动浏览器之前查询状态
-    return { proceed: true };      // 或 { proceed: false, outcome: { status, code, message } }
+  async preflight({ config, signal, log }) { // Optional: query the status before launching the browser
+    return { proceed: true };      // or { proceed: false, outcome: { status, code, message } }
   },
-  validateInput(config) {},        // 可选：仅在需要打开浏览器时校验表单资料
-  async waitUntilReady({ page, config, signal }) {}, // 可选：页面和业务表单就绪条件
+  validateInput(config) {},        // Optional: validate form data only when the browser needs to be opened
+  async waitUntilReady({ page, config, signal }) {}, // Optional: readiness conditions for the page and business form
   async fill({ page, config, log, signal }) {},
   async submit({ page, config, markSubmissionAttempted }) {
-    // 在可能产生远端写入之前记录；之后发生的异常按结果未知处理。
+    // Record before a remote write may occur; an exception that happens afterward is treated as an unknown result.
     await markSubmissionAttempted();
-    // 执行提交并判断业务结果。
+    // Perform the submission and determine the business result.
     return { status: 'pending', code: 'AWAITING_REVIEW' };
   },
 };
 ```
 
-应用必须在提交前调用并等待 `markSubmissionAttempted()`，不要自动重试远端写操作。新状态需同步扩展 CLI 退出码映射。适配器仅返回不含个人数据的状态及固定错误码。
+The application must call and await `markSubmissionAttempted()` before submitting, and must not automatically retry the remote write. A new status requires extending the CLI exit-code mapping in sync. The adapter returns only a status without personal data and a fixed error code.
 
-也可直接从其他应用调用：
+It can also be called directly from another application:
 
 ```javascript
 import { loadConfig, runAutomation } from './src/index.js';
@@ -179,4 +179,4 @@ const config = await loadConfig('config/sheerid.local.json');
 const result = await runAutomation(config, { submit: true });
 ```
 
-后续按实际业务需求增加队列、数据库或 HTTP 服务即可复用执行器；当前实现是单任务 CLI/库，不包含后台服务或分布式调度。
+Later, you can add a queue, database, or HTTP service per actual business needs to reuse the executor; the current implementation is a single-task CLI/library and does not include a background service or distributed scheduling.
