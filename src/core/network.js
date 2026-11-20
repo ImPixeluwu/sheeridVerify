@@ -28,7 +28,7 @@ export async function withNetwork(config, operation) {
   } catch {
     await runtime.dispatcher?.destroy().catch(() => {});
     await bridge?.close(true).catch(() => {});
-    throw new AutomationError('PROXY_START_FAILED', '无法启动本机代理转接，请检查依赖和本机端口权限；未改用直连');
+    throw new AutomationError('PROXY_START_FAILED', 'Could not start the local proxy relay; please check the dependencies and local port permissions; it did not fall back to a direct connection');
   }
   try {
     return await networks.run(runtime, operation);
@@ -43,6 +43,6 @@ export function browserProxy() {
 
 export function networkFetch(url, options = {}) {
   const runtime = networks.getStore();
-  if (runtime?.failed) throw new AutomationError('PROXY_UNAVAILABLE', '代理转接不可用，已停止请求；未改用直连');
+  if (runtime?.failed) throw new AutomationError('PROXY_UNAVAILABLE', 'The proxy relay is unavailable; the request has stopped; it did not fall back to a direct connection');
   return fetch(url, { ...options, ...(runtime?.dispatcher ? { dispatcher: runtime.dispatcher } : {}) });
 }

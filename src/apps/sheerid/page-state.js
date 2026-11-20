@@ -1,6 +1,9 @@
 import { AutomationError } from '../../core/errors.js';
 
 // This terminal page is different from the inline, retryable human-check error.
+// The regex also matches the Chinese variants of the title "We couldn't continue
+// your verification" (e.g. "无法继续验证") so detection works when the page is in
+// Chinese. Keep the Chinese alternatives.
 const FAILURE_TITLE = /^(?:We (?:couldn['’]t|could not) continue your verification|(?:我们|我們)?(?:无法|無法)继续(?:您的)?验证|(?:我們)?無法繼續(?:您的)?驗證)[.!。]?$/i;
 
 export async function verificationFailure(page) {
@@ -12,7 +15,7 @@ export async function verificationFailure(page) {
   if (await errorStep.count() === 0 && await title.count() === 0) return null;
   return {
     status: 'failed', code: 'VERIFICATION_UNAVAILABLE',
-    message: 'SheerID 页面显示无法继续验证，本次验证失败；已停止填写、重试和提交',
+    message: 'The SheerID page shows that verification cannot continue; this verification failed; filling, retries, and submission have stopped',
   };
 }
 

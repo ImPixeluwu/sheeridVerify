@@ -1,19 +1,19 @@
-# 安全说明
+# Security notes
 
-本说明适用于 [JenkinWoo/sheeridVerify](https://github.com/JenkinWoo/sheeridVerify)。
+These notes apply to [JenkinWoo/sheeridVerify](https://github.com/JenkinWoo/sheeridVerify).
 
-## 部署与数据
+## Deployment and data
 
-- 公网部署使用 HTTPS，并通过 `ONE_WEB_PASSWORD` 设置独立的强密码；不要使用代码中的默认密码。
-- 仅向获得授权的人员开放入口，按需增加网络访问限制。本项目使用共享密码，不提供多租户隔离或个人账号权限管理。
-- 保持 Node.js、依赖及浏览器更新；升级后运行相关测试。
-- 将 `config/*.local.json`、`.env.web`、材料和 `.runs/` 保持为私有文件，限制读取权限，按实际需求清理和备份。
-- 不把配置文件或材料目录作为静态网站目录发布。环境变量模板仅为示例，不应包含真实凭据。
+- For a public deployment, use HTTPS and set a separate strong password via `ONE_WEB_PASSWORD`; do not use the default password in the code.
+- Only open the entry point to authorized personnel, and add network access restrictions as needed. This project uses a shared password and does not provide multi-tenant isolation or per-account permission management.
+- Keep Node.js, the dependencies, and the browser up to date; run the relevant tests after upgrading.
+- Keep `config/*.local.json`, `.env.web`, materials, and `.runs/` as private files, restrict read permissions, and clean up and back them up as actually needed.
+- Do not publish the configuration files or the material directory as a static website directory. The environment-variable template is only an example and should not contain real credentials.
 
-配置与示例见 [部署指南](docs/DEPLOYMENT.md)。
+See the [Deployment guide](docs/DEPLOYMENT.md) for configuration and examples.
 
-## 漏洞报告
+## Vulnerability reporting
 
-如仓库启用了 GitHub Private vulnerability reporting，请从仓库的 **Security → Advisories → Report a vulnerability** 私下报告。若该入口不可用，请先在 Issue 中仅请求维护者提供私下联系渠道，不要公开漏洞细节、利用代码或真实数据。
+If the repository has GitHub Private vulnerability reporting enabled, please report privately from the repository's **Security → Advisories → Report a vulnerability**. If that entry point is unavailable, first open an issue that only asks the maintainer for a private contact channel; do not publicly disclose vulnerability details, exploit code, or real data.
 
-报告应包括影响范围、受影响版本、在本地模拟环境中的复现步骤和建议修复方式。不要测试未经授权的第三方系统，也不要为演示问题而读取、修改或提交他人资料。仓库目前未承诺特定响应时限或历史版本支持周期。
+A report should include the scope of impact, the affected version, reproduction steps in a local simulated environment, and a suggested fix. Do not test unauthorized third-party systems, and do not read, modify, or submit others' data to demonstrate an issue. The repository does not currently commit to a specific response time or a support window for historical versions.

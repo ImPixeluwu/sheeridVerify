@@ -1,31 +1,31 @@
-name: 问题报告
-description: 报告可复现的运行或部署问题，请先脱敏。
+name: Bug report
+description: Report a reproducible runtime or deployment issue; please redact first.
 body:
   - type: markdown
     attributes:
-      value: 请勿上传完整配置、真实验证链接、姓名、出生日期、材料、密码、Cookie 或代理凭据。安全漏洞请按 SECURITY.md 私下报告。
+      value: Do not upload a full configuration, real verification links, names, dates of birth, materials, passwords, cookies, or proxy credentials. Please report security vulnerabilities privately per SECURITY.md.
   - type: textarea
     id: environment
     attributes:
-      label: 运行环境
-      description: 操作系统、Node.js 版本、项目提交版本，以及本地或远端部署方式。
+      label: Environment
+      description: Operating system, Node.js version, the project commit version, and whether it is a local or remote deployment.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: 复现步骤
-      description: 使用本地模拟页面或脱敏示例描述操作步骤。
+      label: Steps to reproduce
+      description: Describe the steps using a local mock page or a redacted example.
     validations:
       required: true
   - type: textarea
     id: behavior
     attributes:
-      label: 期望与实际行为
+      label: Expected vs. actual behavior
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: 脱敏后的错误信息
+      label: Redacted error message
       render: text

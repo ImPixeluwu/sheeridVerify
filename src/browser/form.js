@@ -5,15 +5,15 @@ async function findVisibleField(page, selectors, name) {
   for (const selector of selectors) {
     const locator = page.locator(selector).filter({ visible: true });
     const count = await locator.count();
-    if (count > 1) throw new AutomationError('AMBIGUOUS_FIELD', `字段 ${name} 匹配到多个元素，请收紧选择器`);
+    if (count > 1) throw new AutomationError('AMBIGUOUS_FIELD', `Field ${name} matched multiple elements; please tighten the selector`);
     if (count === 1) return locator;
   }
   return null;
 }
 
 function checkWaiting(page, signal) {
-  if (signal?.aborted) throw new AutomationError('CANCELLED', '任务已取消');
-  if (page.isClosed()) throw new AutomationError('PAGE_CLOSED', '等待表单期间浏览器页面已关闭');
+  if (signal?.aborted) throw new AutomationError('CANCELLED', 'The task was canceled');
+  if (page.isClosed()) throw new AutomationError('PAGE_CLOSED', 'The browser page was closed while waiting for the form');
 }
 
 // Playwright's "visible" only means a non-empty box. During SPA start-up a control can
@@ -103,9 +103,9 @@ export async function waitForFields(page, selectors, names, { timeoutMs, signal,
   } while (Date.now() < deadline);
   checkWaiting(page, signal);
   if (assertPage && !await assertPage()) {
-    throw new AutomationError('UNEXPECTED_PAGE', '等待结束后仍未进入指定验证会话，请检查登录、跳转或链接状态');
+    throw new AutomationError('UNEXPECTED_PAGE', 'After the wait ended, the specified verification session was still not entered; please check the login, redirect, or link status');
   }
-  throw new AutomationError('FORM_NOT_READY', `表单等待超时，以下字段未出现或不可操作：${pending.join(', ')}。请检查页面加载状态及对应选择器`);
+  throw new AutomationError('FORM_NOT_READY', `Form wait timed out; the following fields did not appear or are not operable: ${pending.join(', ')}. Please check the page load status and the corresponding selectors`);
 }
 
 // Native selects and Downshift-style comboboxes require different interactions.
@@ -156,7 +156,7 @@ export async function selectChoice(locator, { value, label, labels = [label], se
       count = await candidate.count();
     }
     if (count > 1) {
-      throw new AutomationError('AMBIGUOUS_OPTION', `字段 ${field} 匹配到多个候选项；学校请在 organization.optionText 中填写含城市/州的完整名称`);
+      throw new AutomationError('AMBIGUOUS_OPTION', `Field ${field} matched multiple candidates; for the school, enter the full name with city/state in organization.optionText`);
     }
     sawMatch ||= count === 1;
     return count === 1 ? candidate : null;
@@ -283,15 +283,15 @@ export async function selectChoice(locator, { value, label, labels = [label], se
     if (Date.now() < deadline) await delay(Math.min(200, remaining()), undefined, { signal });
   } while (Date.now() < deadline);
   if (selectionAttempted) {
-    throw new AutomationError('OPTION_NOT_COMMITTED', `字段 ${field} 在等待期限内未能确认选中成功，已停止后续填写；请检查页面选中状态或校验提示`);
+    throw new AutomationError('OPTION_NOT_COMMITTED', `Field ${field} could not confirm a successful selection within the wait window; further filling has stopped; please check the page selection state or validation hints`);
   }
   if (sawMatch) {
-    throw new AutomationError('OPTION_NOT_SELECTABLE', `字段 ${field} 的匹配选项在等待期限内持续刷新、被遮挡或不可点击，已停止后续填写`);
+    throw new AutomationError('OPTION_NOT_SELECTABLE', `The matching option for field ${field} kept refreshing, was obstructed, or was unclickable within the wait window; further filling has stopped`);
   }
   throw new AutomationError(sawOptions ? 'OPTION_LABEL_MISMATCH' : 'OPTION_NOT_FOUND',
     sawOptions
-      ? `字段 ${field} 未出现唯一、稳定且可点击的匹配选项；请检查页面语言、配置名称及加载状态`
-      : `字段 ${field} 等待候选项超时；请检查网络、搜索内容和页面语言，未继续填写后续字段`);
+      ? `Field ${field} did not present a unique, stable, and clickable matching option; please check the page language, configured name, and load status`
+      : `Field ${field} timed out waiting for a candidate; please check the network, search content, and page language; subsequent fields were not filled`);
 }
 
 async function choiceScope(locator, options) {
@@ -351,7 +351,7 @@ export async function visibleField(page, selectors, name, timeoutMs) {
     if (locator) return locator;
     await delay(150);
   } while (Date.now() < deadline && !page.isClosed());
-  throw new AutomationError('FIELD_NOT_FOUND', `找不到字段 ${name}，请检查页面状态与选择器`);
+  throw new AutomationError('FIELD_NOT_FOUND', `Field ${name} not found; please check the page state and the selector`);
 }
 
 export async function setField(locator, value, { timeoutMs = 15000, signal, interaction, labels = [], onPending } = {}) {
@@ -375,7 +375,7 @@ export async function setField(locator, value, { timeoutMs = 15000, signal, inte
         ? enabled.filter(option => /^\d+$/.test(option.value) && Number(option.value) === Number(input)) : [];
       return (exact.length ? exact : numeric).map(option => option.value);
     }, { input: String(value), labels });
-    if (matches.length > 1) throw new AutomationError('AMBIGUOUS_OPTION', '下拉选项不唯一，请检查配置值');
+    if (matches.length > 1) throw new AutomationError('AMBIGUOUS_OPTION', 'The dropdown option is not unique; please check the configured value');
     if (matches.length === 1) {
       await locator.selectOption(matches[0], { timeout: Math.max(1, deadline - Date.now()) });
       return;
@@ -387,5 +387,5 @@ export async function setField(locator, value, { timeoutMs = 15000, signal, inte
     const remaining = deadline - Date.now();
     if (remaining > 0) await delay(Math.min(200, remaining), undefined, { signal });
   } while (Date.now() < deadline);
-  throw new AutomationError('OPTION_NOT_FOUND', '等待下拉选项超时，请检查选项是否加载完成及配置值是否匹配');
+  throw new AutomationError('OPTION_NOT_FOUND', 'Timed out waiting for the dropdown option; please check whether the options have finished loading and whether the configured value matches');
 }

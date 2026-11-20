@@ -1,10 +1,10 @@
-# 参与贡献
+# Contributing
 
-欢迎参与 [sheeridVerify](https://github.com/JenkinWoo/sheeridVerify)，改进教学示例、配置校验、错误处理、任务队列、测试及文档。参与前请阅读 [用途说明与免责声明](DISCLAIMER.md)。
+You are welcome to contribute to [sheeridVerify](https://github.com/JenkinWoo/sheeridVerify) by improving the teaching examples, configuration validation, error handling, the task queue, tests, and documentation. Before contributing, please read the [Usage Notice and Disclaimer](DISCLAIMER.md).
 
-## 开发环境
+## Development environment
 
-需要 Node.js >= 22.15 和 npm。在仓库根目录执行：
+Requires Node.js >= 22.15 and npm. In the repository root, run:
 
 ```bash
 npm ci
@@ -12,22 +12,22 @@ npm run browser:install
 npm test
 ```
 
-`npm run browser:install` 下载适用于当前系统的 Camoufox，需要网络和相应磁盘空间。未安装浏览器时，依赖浏览器的测试会跳过；涉及浏览器或网页交互的改动应安装浏览器并确认这些用例实际通过。
+`npm run browser:install` downloads the Camoufox build for the current system and requires network access and corresponding disk space. When the browser is not installed, browser-dependent tests are skipped; changes that involve the browser or web-page interaction should install the browser and confirm those cases actually pass.
 
-测试应使用本地页面、模拟接口及虚构测试数据，不访问真实验证接口、不提交真实材料。运行 Web 工作台的准备步骤见 [README](README.md)，Linux 部署见 [部署指南](docs/DEPLOYMENT.md)。
+Tests should use local pages, mock endpoints, and fictitious test data, and must not access real verification endpoints or submit real materials. See the [README](README.md) for the steps to prepare the web workbench, and the [Deployment guide](docs/DEPLOYMENT.md) for Linux deployment.
 
-## 报告问题
+## Reporting issues
 
-请提供操作系统、Node.js 版本、可复现步骤、期望和实际行为，以及脱敏后的错误信息。说明使用的是本地运行还是远端部署。不要粘贴完整个人配置、真实验证链接、材料、访问密码、代理凭据或会话信息。
+Please provide the operating system, Node.js version, reproducible steps, the expected and actual behavior, and the redacted error message. State whether you are running locally or on a remote deployment. Do not paste a full personal configuration, real verification links, materials, access password, proxy credentials, or session information.
 
-安全漏洞应按 [安全说明](SECURITY.md) 私下报告，不要在公开 Issue 中披露可利用的细节。
+Security vulnerabilities should be reported privately per the [Security notes](SECURITY.md); do not disclose exploitable details in a public issue.
 
-## 提交改动
+## Submitting changes
 
-1. 从当前分支创建功能分支，保持一次改动聚焦一个问题。
-2. 保持现有 ESM 风格；新增配置项时同时更新示例与文档。
-3. 根据改动运行相关测试；涉及任务状态、鉴权和远端写入时覆盖相应行为。
-4. 提交前运行 `git diff --check`，确认未纳入本地配置、材料和运行日志。
-5. 在 Pull Request 中说明问题、修改后的行为、验证方法及已知限制。
+1. Create a feature branch from the current branch, keeping each change focused on a single issue.
+2. Keep the existing ESM style; when adding a configuration option, update the example and the documentation at the same time.
+3. Run the relevant tests for your change; cover the corresponding behavior when it involves task status, authentication, and remote writes.
+4. Before committing, run `git diff --check` and confirm that local configurations, materials, and run logs are not included.
+5. In the pull request, describe the issue, the changed behavior, how you verified it, and known limitations.
 
-不接受伪造证明、冒用身份、绕过资格审核或未授权访问等方向的功能。贡献者应确保拥有所提交内容的权利；提交的代码按本项目 [ISC 协议](LICENSE) 提供，第三方内容应注明来源及许可。
+Features aimed at forging proof, impersonating identities, bypassing eligibility review, or unauthorized access are not accepted. Contributors should ensure they have the rights to the content they submit; submitted code is provided under this project's [ISC license](LICENSE), and third-party content should note its source and license.
